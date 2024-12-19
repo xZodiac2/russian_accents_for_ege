@@ -142,7 +142,7 @@ private fun Mistakes(padding: PaddingValues, lazyListState: LazyListState, mista
                         fontSize = 22.sp
                     )
                     Text(
-                        text = "Кол-во ошибок: ${mistake.count}",
+                        text = "Ошибки: ${mistake.count}",
                         fontSize = 16.sp
                     )
                 }

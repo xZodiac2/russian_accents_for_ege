@@ -1,6 +1,7 @@
 package com.ilya.training.screen
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -11,15 +12,18 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
@@ -83,20 +87,21 @@ fun TrainingScreen(mistakesOnly: Boolean, onBackClick: () -> Unit) {
                 .fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
+            val pagerState = rememberPagerState { wordsState.value.words.size }
             Column(
                 modifier = Modifier
                     .padding(horizontal = 12.dp)
-                    .fillMaxWidth()
-                    .fillMaxHeight(0.65f),
-                verticalArrangement = Arrangement.SpaceBetween,
+                    .verticalScroll(rememberScrollState())
+                    .animateContentSize(),
+                verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                Spacer(modifier = Modifier.height(48.dp))
                 Text(
                     text = "Тренажер ударений Русского языка",
                     fontSize = 26.sp,
                     textAlign = TextAlign.Center
                 )
-                val pagerState = rememberPagerState { wordsState.value.words.size }
                 HorizontalPager(
                     state = pagerState,
                     userScrollEnabled = false
@@ -125,6 +130,23 @@ fun TrainingScreen(mistakesOnly: Boolean, onBackClick: () -> Unit) {
                     text = "Слово ${pagerState.currentPage + 1} из ${wordsState.value.words.size}",
                     fontSize = 20.sp
                 )
+                Spacer(modifier = Modifier.height(32.dp))
+                Button(
+                    onClick = onBackClick,
+                    colors = ButtonDefaults.buttonColors(
+                        contentColor = Color.White,
+                        containerColor = Color(48, 119, 231, 255)
+                    ),
+                    shape = RoundedCornerShape(12.dp),
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Text(text = "Завершить практику")
+                    }
+                }
+                Spacer(modifier = Modifier.height(48.dp))
             }
         }
     }

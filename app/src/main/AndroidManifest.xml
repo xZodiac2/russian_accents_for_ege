@@ -10,13 +10,13 @@
         android:label="Ударения"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.RussianAccents"
+        android:theme="@style/Theme.App.Starting"
         tools:targetApi="31"
         android:name=".app.RussianAccentsApplication">
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:theme="@style/Theme.RussianAccents">
+            android:theme="@style/Theme.App.Starting">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

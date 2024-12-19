@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -29,6 +30,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -49,8 +51,11 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
+    private val viewModel by viewModels<SplashScreenViewModel>()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        installSplashScreen().apply { setKeepOnScreenCondition { viewModel.isLoading } }
         enableEdgeToEdge()
         setContent {
             val navController = rememberNavController()
@@ -89,9 +94,7 @@ class MainActivity : ComponentActivity() {
                 enterTransition = { fadeIn(tween(0)) },
                 exitTransition = { fadeOut(tween(0)) }
             ) {
-                HomeScreen {
-                    navController.navigate(Screen.Training(false))
-                }
+                HomeScreen { navController.navigate(Screen.Training(false)) }
                 LaunchedEffect(Unit) { showBottomBar() }
             }
             composable<Screen.Training>(
@@ -99,18 +102,14 @@ class MainActivity : ComponentActivity() {
                 exitTransition = { fadeOut(tween(0)) }
             ) {
                 val route = it.toRoute<Screen.Training>()
-                TrainingScreen(route.mistakesOnly) {
-                    navController.popBackStack()
-                }
+                TrainingScreen(route.mistakesOnly) { navController.popBackStack() }
                 LaunchedEffect(Unit) { hideBottomBar() }
             }
             composable<Screen.MistakeReview>(
                 enterTransition = { fadeIn(tween(0)) },
                 exitTransition = { fadeOut(tween(0)) }
             ) {
-                MistakesReviewScreen {
-                    navController.navigate(Screen.Training(true))
-                }
+                MistakesReviewScreen { navController.navigate(Screen.Training(true)) }
                 LaunchedEffect(Unit) { showBottomBar() }
             }
         }

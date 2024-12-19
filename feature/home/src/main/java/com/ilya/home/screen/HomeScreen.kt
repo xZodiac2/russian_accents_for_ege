@@ -37,6 +37,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -53,7 +54,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.ilya.home.HomeViewModel
 import com.ilya.home.R
 import com.ilya.home.screen.event.Event
@@ -61,7 +62,7 @@ import com.ilya.home.screen.event.Event
 
 @Composable
 fun HomeScreen(onTrainingClick: () -> Unit) {
-    val viewModel = viewModel<HomeViewModel>()
+    val viewModel = hiltViewModel<HomeViewModel>()
 
     val screenState = viewModel.screenState.collectAsState()
     val lazyListState = rememberLazyListState()
@@ -106,6 +107,10 @@ fun HomeScreen(onTrainingClick: () -> Unit) {
             }
             WordList(lazyListState, screenState.value.words)
         }
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.handleEvent(Event.Start)
     }
 }
 
