@@ -1,4 +1,4 @@
-package com.ilya.training.screen.event
+package com.ilya.training.screen
 
 internal sealed interface Event {
     data class CheckPressed(val wordIndex: Int, val letterIndex: Int) : Event

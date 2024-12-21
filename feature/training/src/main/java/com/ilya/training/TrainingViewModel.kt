@@ -6,9 +6,9 @@ import com.ilya.data.MistakesRepository
 import com.ilya.data.WordsRepository
 import com.ilya.data.models.Mistake
 import com.ilya.data.repositiory.RepositoryError
-import com.ilya.training.screen.event.Event
-import com.ilya.training.screen.state.SolutionStatus
-import com.ilya.training.screen.state.WordList
+import com.ilya.training.screen.Event
+import com.ilya.training.screen.SolutionStatus
+import com.ilya.training.screen.WordList
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow

@@ -62,9 +62,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.ilya.training.TrainingViewModel
 import com.ilya.training.models.BLANK_REPRESENTATION
 import com.ilya.training.models.Letter
-import com.ilya.training.screen.event.Event
-import com.ilya.training.screen.state.SolutionStatus
-import com.ilya.training.screen.state.WordList
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 

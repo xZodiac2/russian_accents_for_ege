@@ -57,7 +57,6 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.ilya.home.HomeViewModel
 import com.ilya.home.R
-import com.ilya.home.screen.event.Event
 
 
 @Composable

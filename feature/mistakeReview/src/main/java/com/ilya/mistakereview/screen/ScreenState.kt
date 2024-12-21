@@ -1,4 +1,4 @@
-package com.ilya.mistakereview.screen.state
+package com.ilya.mistakereview.screen
 
 import com.ilya.data.models.Mistake
 

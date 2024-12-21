@@ -3,8 +3,8 @@ package com.ilya.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ilya.data.WordsRepository
-import com.ilya.home.screen.event.Event
-import com.ilya.home.screen.state.ScreenState
+import com.ilya.home.screen.Event
+import com.ilya.home.screen.ScreenState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow

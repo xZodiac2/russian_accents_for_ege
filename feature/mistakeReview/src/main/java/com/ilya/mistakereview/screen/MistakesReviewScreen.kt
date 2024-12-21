@@ -45,8 +45,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.ilya.data.models.Mistake
 import com.ilya.mistakereview.MistakesReviewViewModel
 import com.ilya.mistakereview.R
-import com.ilya.mistakereview.screen.event.Event
-import com.ilya.mistakereview.screen.state.ScreenState
 
 @Composable
 fun MistakesReviewScreen(onTrainingClick: () -> Unit) {

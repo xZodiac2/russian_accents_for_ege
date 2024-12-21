@@ -3,8 +3,8 @@ package com.ilya.mistakereview
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ilya.data.MistakesRepository
-import com.ilya.mistakereview.screen.event.Event
-import com.ilya.mistakereview.screen.state.ScreenState
+import com.ilya.mistakereview.screen.Event
+import com.ilya.mistakereview.screen.ScreenState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow

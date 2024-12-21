@@ -1,4 +1,4 @@
-package com.ilya.home.screen.event
+package com.ilya.home.screen
 
 internal sealed interface Event {
     data object Start : Event

@@ -1,4 +1,4 @@
-package com.ilya.home.screen.state
+package com.ilya.home.screen
 
 import androidx.compose.runtime.Immutable
 

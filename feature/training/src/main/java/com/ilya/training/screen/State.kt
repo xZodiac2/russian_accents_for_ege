@@ -1,4 +1,4 @@
-package com.ilya.training.screen.state
+package com.ilya.training.screen
 
 import androidx.compose.runtime.Immutable
 
