@@ -32,16 +32,16 @@ internal class HomeViewModel @Inject constructor(
     private fun onStart() {
         viewModelScope.launch(Dispatchers.IO) {
             allWords = wordsRepository.getAll()
-            _screenState.value = ScreenState(sortWords(allWords))
+            _screenState.value = ScreenState(groupWords(allWords))
         }
     }
 
     private fun onSearch(query: String) {
         val results = allWords.filter { query.lowercase() in it.lowercase() }
-        _screenState.value = ScreenState(sortWords(results))
+        _screenState.value = ScreenState(groupWords(results))
     }
 
-    private fun sortWords(words: List<String>): List<List<String>> {
+    private fun groupWords(words: List<String>): List<List<String>> {
         return words.groupBy { it[0].lowercase() }.map { it.value }
     }
 

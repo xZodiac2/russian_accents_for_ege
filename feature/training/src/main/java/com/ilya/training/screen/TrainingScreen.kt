@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -45,12 +46,10 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -62,15 +61,13 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.ilya.training.TrainingViewModel
 import com.ilya.training.models.BLANK_REPRESENTATION
 import com.ilya.training.models.Letter
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 @Composable
-fun TrainingScreen(mistakesOnly: Boolean, onBackClick: () -> Unit) {
+fun TrainingScreen(isMistakesOnly: Boolean, onBackClick: () -> Unit) {
     val viewModel = hiltViewModel<TrainingViewModel>()
-
-    val wordsState = viewModel.wordsState.collectAsState()
-    val scope = rememberCoroutineScope()
 
     BackHandler { onBackClick() }
 
@@ -84,72 +81,21 @@ fun TrainingScreen(mistakesOnly: Boolean, onBackClick: () -> Unit) {
                 .fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            val pagerState = rememberPagerState { wordsState.value.words.size }
-            Column(
-                modifier = Modifier
-                    .padding(horizontal = 12.dp)
-                    .verticalScroll(rememberScrollState())
-                    .animateContentSize(),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Spacer(modifier = Modifier.height(48.dp))
-                Text(
-                    text = "Тренажер ударений Русского языка",
-                    fontSize = 26.sp,
-                    textAlign = TextAlign.Center
-                )
-                HorizontalPager(
-                    state = pagerState,
-                    userScrollEnabled = false
-                ) { wordIndex ->
-                    TrainingContent(
-                        words = wordsState,
-                        wordIndex = wordIndex,
-                        solutionStatusStateFlow = viewModel.solutionStatus,
-                        onNextWord = {
-                            viewModel.handleEvent(Event.NextPressed(wordIndex))
-                            scope.launch {
-                                if (wordIndex == wordsState.value.words.lastIndex) {
-                                    onBackClick()
-                                    return@launch
-                                }
-                                pagerState.animateScrollToPage(pagerState.currentPage + 1)
-                            }
-                        },
-                        onLetterSelected = { viewModel.handleEvent(Event.LetterSelected) },
-                        onCheckPressed = { letterIndex ->
-                            viewModel.handleEvent(Event.CheckPressed(wordIndex, letterIndex))
-                        }
-                    )
+            Content(
+                wordsStateFlow = viewModel.wordsState,
+                solutionStatusStateFlow = viewModel.solutionStatus,
+                onBackClick = onBackClick,
+                onNextPressed = { viewModel.handleEvent(Event.NextPressed(it)) },
+                onLetterSelected = { viewModel.handleEvent(Event.LetterSelected) },
+                onCheckPressed = { wordIndex, letterIndex ->
+                    viewModel.handleEvent(Event.CheckPressed(wordIndex, letterIndex))
                 }
-                Text(
-                    text = "Слово ${pagerState.currentPage + 1} из ${wordsState.value.words.size}",
-                    fontSize = 20.sp
-                )
-                Spacer(modifier = Modifier.height(32.dp))
-                Button(
-                    onClick = onBackClick,
-                    colors = ButtonDefaults.buttonColors(
-                        contentColor = Color.White,
-                        containerColor = Color(48, 119, 231, 255)
-                    ),
-                    shape = RoundedCornerShape(12.dp),
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        Text(text = "Завершить практику")
-                    }
-                }
-                Spacer(modifier = Modifier.height(48.dp))
-            }
+            )
         }
     }
 
     LaunchedEffect(Unit) {
-        viewModel.handleEvent(Event.Start(mistakesOnly))
+        viewModel.handleEvent(Event.Start(isMistakesOnly))
     }
 }
 
@@ -173,17 +119,96 @@ private fun TopBar(onBackClick: () -> Unit) {
                 }
             },
             windowInsets = WindowInsets(0, 0),
-            colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = Color.White
-            )
+            colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
         )
         HorizontalDivider()
     }
 }
 
 @Composable
+private fun Content(
+    wordsStateFlow: StateFlow<WordList>,
+    solutionStatusStateFlow: StateFlow<SolutionStatus>,
+    onNextPressed: (wordIndex: Int) -> Unit,
+    onBackClick: () -> Unit,
+    onLetterSelected: () -> Unit,
+    onCheckPressed: (wordIndex: Int, letterIndex: Int) -> Unit
+) {
+    val wordsState = wordsStateFlow.collectAsState()
+    val pagerState = rememberPagerState { wordsState.value.words.size }
+    val scope = rememberCoroutineScope()
+
+    Column(
+        modifier = Modifier
+            .padding(horizontal = 12.dp)
+            .verticalScroll(rememberScrollState())
+            .animateContentSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Header()
+        ProblemsPager(
+            pagerState = pagerState,
+            wordsState = wordsState,
+            solutionStatusStateFlow = solutionStatusStateFlow,
+            scope = scope,
+            onNextPressed = onNextPressed,
+            onBackClick = onBackClick,
+            onLetterSelected = onLetterSelected,
+            onCheckPressed = onCheckPressed
+        )
+        Footer(pagerState, wordsState, onBackClick)
+    }
+}
+
+@Composable
+private fun Header() {
+    Spacer(modifier = Modifier.height(48.dp))
+    Text(
+        text = "Тренажер ударений Русского языка",
+        fontSize = 26.sp,
+        textAlign = TextAlign.Center
+    )
+}
+
+@Composable
+private fun ProblemsPager(
+    pagerState: PagerState,
+    wordsState: State<WordList>,
+    solutionStatusStateFlow: StateFlow<SolutionStatus>,
+    scope: CoroutineScope,
+    onNextPressed: (wordIndex: Int) -> Unit,
+    onBackClick: () -> Unit,
+    onLetterSelected: () -> Unit,
+    onCheckPressed: (wordIndex: Int, letterIndex: Int) -> Unit
+) {
+    HorizontalPager(
+        state = pagerState,
+        userScrollEnabled = false
+    ) { wordIndex ->
+        TrainingContent(
+            wordsState = wordsState,
+            wordIndex = wordIndex,
+            solutionStatusStateFlow = solutionStatusStateFlow,
+            onNextWord = {
+                onNextPressed(wordIndex)
+                scope.launch {
+                    if (wordIndex == wordsState.value.words.lastIndex) {
+                        onBackClick()
+                        return@launch
+                    }
+                    pagerState.animateScrollToPage(pagerState.currentPage + 1)
+                }
+            },
+            onLetterSelected = { onLetterSelected() },
+            onCheckPressed = { letterIndex -> onCheckPressed(wordIndex, letterIndex) }
+        )
+    }
+}
+
+@Composable
 private fun TrainingContent(
-    words: State<WordList>,
+    wordsState: State<WordList>,
     wordIndex: Int,
     onNextWord: () -> Unit,
     onLetterSelected: () -> Unit,
@@ -191,7 +216,7 @@ private fun TrainingContent(
     solutionStatusStateFlow: StateFlow<SolutionStatus>
 ) {
     val solutionStatus = solutionStatusStateFlow.collectAsState()
-    val word = words.value.words[wordIndex]
+    val word = wordsState.value.words[wordIndex]
 
     Card(
         modifier = Modifier
@@ -207,9 +232,9 @@ private fun TrainingContent(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(32.dp)
         ) {
-            var lastSelectedLetterIndex by remember { mutableIntStateOf(TrainingViewModel.DEFAULT_SELECTED_INDEX) }
-            var buttonEnabled by remember(solutionStatus.value) {
-                mutableStateOf(!solutionStatus.value.isSolved && lastSelectedLetterIndex != TrainingViewModel.DEFAULT_SELECTED_INDEX)
+            val lastSelectedLetterIndex = remember { mutableIntStateOf(TrainingViewModel.DEFAULT_SELECTED_INDEX) }
+            val isCheckButtonEnalbed = remember(solutionStatus.value) {
+                mutableStateOf(!solutionStatus.value.isSolved && lastSelectedLetterIndex.intValue != TrainingViewModel.DEFAULT_SELECTED_INDEX)
             }
             Text(
                 text = "Выбери правильное ударение",
@@ -217,83 +242,87 @@ private fun TrainingContent(
                 textAlign = TextAlign.Center
             )
             LetterChoice(word, solutionStatus) {
-                buttonEnabled = true
-                lastSelectedLetterIndex = it
+                isCheckButtonEnalbed.value = true
+                lastSelectedLetterIndex.intValue = it
                 onLetterSelected()
             }
-            Row(
-                modifier = Modifier
-                    .padding(horizontal = 20.dp)
-                    .fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ResolvingButtonsRow(
+                wordIndex = wordIndex,
+                lastSelectedLetterIndex = lastSelectedLetterIndex.intValue,
+                buttonEnabled = isCheckButtonEnalbed.value,
+                wordsState = wordsState,
+                solutionStatus = solutionStatus,
+                onCheckPressed = onCheckPressed,
+                onNextWord = onNextWord
+            )
+        }
+    }
+}
+
+@Composable
+private fun ResolvingButtonsRow(
+    wordIndex: Int,
+    lastSelectedLetterIndex: Int,
+    buttonEnabled: Boolean,
+    wordsState: State<WordList>,
+    solutionStatus: State<SolutionStatus>,
+    onCheckPressed: (letterIndex: Int) -> Unit,
+    onNextWord: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .padding(horizontal = 20.dp)
+            .fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        val modifier = if (solutionStatus.value.isCorrect) {
+            Modifier.weight(4f)
+        } else {
+            Modifier.fillMaxWidth()
+        }
+        Button(
+            modifier = modifier,
+            enabled = buttonEnabled,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = calculateCheckButtonColor(lastSelectedLetterIndex, solutionStatus.value),
+                disabledContainerColor = calculateCheckButtonColor(lastSelectedLetterIndex, solutionStatus.value),
+            ),
+            shape = RoundedCornerShape(12.dp),
+            onClick = { onCheckPressed(lastSelectedLetterIndex) }
+        ) {
+            Text(
+                text = calculateCheckButtonText(solutionStatus.value),
+                fontSize = 16.sp,
+                color = calculateCheckButtonTextColor(lastSelectedLetterIndex)
+            )
+        }
+        if (solutionStatus.value.isCorrect) {
+            Button(
+                modifier = Modifier.weight(1f),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(39, 139, 224, 255)
+                ),
+                contentPadding = PaddingValues(0.dp),
+                onClick = onNextWord
             ) {
-                val modifier = if (solutionStatus.value.isCorrect) {
-                    Modifier.weight(4f)
-                } else {
-                    Modifier.fillMaxWidth()
-                }
-                Button(
-                    modifier = modifier,
-                    enabled = buttonEnabled,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = calculateButtonColor(lastSelectedLetterIndex, solutionStatus.value),
-                        disabledContainerColor = calculateButtonColor(lastSelectedLetterIndex, solutionStatus.value),
-                    ),
-                    shape = RoundedCornerShape(12.dp),
-                    onClick = { onCheckPressed(lastSelectedLetterIndex) }
-                ) {
-                    Text(
-                        text = calculateButtonText(solutionStatus.value),
-                        fontSize = 16.sp,
-                        color = calculateButtonTextColor(lastSelectedLetterIndex)
-                    )
-                }
-                if (solutionStatus.value.isCorrect) {
-                    Button(
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(39, 139, 224, 255)
-                        ),
-                        contentPadding = PaddingValues(0.dp),
-                        onClick = onNextWord
-                    ) {
-                        Icon(
-                            imageVector = if (wordIndex == words.value.words.lastIndex) {
-                                Icons.AutoMirrored.Filled.ExitToApp
-                            } else {
-                                Icons.AutoMirrored.Filled.ArrowForward
-                            },
-                            contentDescription = "continue"
-                        )
-                    }
-                }
+                Icon(
+                    imageVector = if (wordIndex == wordsState.value.words.lastIndex) {
+                        Icons.AutoMirrored.Filled.ExitToApp
+                    } else {
+                        Icons.AutoMirrored.Filled.ArrowForward
+                    },
+                    contentDescription = "continue"
+                )
             }
         }
     }
 }
 
-private fun calculateButtonTextColor(letterIndex: Int): Color {
-    if (letterIndex == TrainingViewModel.DEFAULT_SELECTED_INDEX) return Color.Gray
-    return Color.White
-}
-
-private fun calculateButtonText(solutionStatus: SolutionStatus): String {
-    if (!solutionStatus.isSolved) return "Проверить"
-    return if (solutionStatus.isCorrect) "Правильно" else "Неправильно"
-}
-
-private fun calculateButtonColor(letterIndex: Int, solutionStatus: SolutionStatus): Color {
-    if (letterIndex == TrainingViewModel.DEFAULT_SELECTED_INDEX) return Color(234, 234, 234, 255)
-    if (!solutionStatus.isSolved) return Color(39, 139, 224, 255)
-
-    return if (solutionStatus.isCorrect) Color(127, 204, 127, 255) else Color(248, 102, 102, 255)
-}
-
 @Composable
 private fun LetterChoice(word: String, solutionStatus: State<SolutionStatus>, onLetterSelected: (Int) -> Unit) {
     val letters = remember(word) {
-        mutableStateOf(word.mapIndexed { index, c -> Letter(index, c.lowercase()) })
+        mutableStateOf(word.mapIndexed { index, char -> Letter(index, char.lowercase()) })
     }
     val lettersGrid = remember(letters.value) { letters.value.chunked(6) }
 
@@ -331,7 +360,7 @@ private fun RowScope.LetterButton(
 ) {
     val isVowel = remember { letter.representation in vowels }
     val strokeColor = remember(letter.selected, solutionStatus.value) {
-        calculateLetterBoxStrokeColor(isVowel, letter.selected, solutionStatus.value)
+        calculateLetterButtonStrokeColor(isVowel, letter.selected, solutionStatus.value)
     }
 
     val interactionSource = remember { MutableInteractionSource() }
@@ -351,7 +380,7 @@ private fun RowScope.LetterButton(
             .weight(1f)
             .aspectRatio(1f)
             .clip(RoundedCornerShape(12.dp))
-            .background(calculateButtonBackground(solutionStatus.value, letter.selected))
+            .background(calculateLetterButtonBackground(solutionStatus.value, letter.selected))
             .border(2.dp, strokeColor, RoundedCornerShape(12.dp))
             .clickable(
                 interactionSource = interactionSource,
@@ -359,11 +388,11 @@ private fun RowScope.LetterButton(
                 enabled = isVowel && !solutionStatus.value.isCorrect
             ) {
                 val clickedLetter = letter.copy(selected = true)
-                val changedLetters = letters.value
+                val newLetters = letters.value
                     .map { it.copy(selected = false) }
                     .toMutableList()
-                changedLetters[clickedLetter.index] = clickedLetter
-                letters.value = changedLetters
+                newLetters[clickedLetter.index] = clickedLetter
+                letters.value = newLetters
                 onLetterSelected(letter.index)
             },
         contentAlignment = Alignment.Center,
@@ -376,14 +405,51 @@ private fun RowScope.LetterButton(
     }
 }
 
-private fun calculateButtonBackground(solutionStatus: SolutionStatus, isSelected: Boolean): Color {
+@Composable
+private fun Footer(pagerState: PagerState, wordsState: State<WordList>, onBackClick: () -> Unit) {
+    Text(
+        text = "Слово ${pagerState.currentPage + 1} из ${wordsState.value.words.size}",
+        fontSize = 20.sp
+    )
+    Spacer(modifier = Modifier.height(32.dp))
+    Button(
+        onClick = onBackClick,
+        colors = ButtonDefaults.buttonColors(
+            contentColor = Color.White,
+            containerColor = Color(48, 119, 231, 255)
+        ),
+        shape = RoundedCornerShape(12.dp),
+    ) {
+        Text(text = "Завершить практику")
+    }
+    Spacer(modifier = Modifier.height(48.dp))
+}
+
+private fun calculateCheckButtonTextColor(letterIndex: Int): Color {
+    if (letterIndex == TrainingViewModel.DEFAULT_SELECTED_INDEX) return Color.Gray
+    return Color.White
+}
+
+private fun calculateCheckButtonText(solutionStatus: SolutionStatus): String {
+    if (!solutionStatus.isSolved) return "Проверить"
+    return if (solutionStatus.isCorrect) "Правильно" else "Неправильно"
+}
+
+private fun calculateCheckButtonColor(letterIndex: Int, solutionStatus: SolutionStatus): Color {
+    if (letterIndex == TrainingViewModel.DEFAULT_SELECTED_INDEX) return Color(234, 234, 234, 255)
+    if (!solutionStatus.isSolved) return Color(39, 139, 224, 255)
+
+    return if (solutionStatus.isCorrect) Color(127, 204, 127, 255) else Color(248, 102, 102, 255)
+}
+
+private fun calculateLetterButtonBackground(solutionStatus: SolutionStatus, isSelected: Boolean): Color {
     if (!isSelected) return Color.White
     if (!solutionStatus.isSolved) return Color(224, 244, 253, 255)
     if (solutionStatus.isCorrect) return Color(203, 255, 191, 255)
     return Color(250, 162, 162, 255)
 }
 
-private fun calculateLetterBoxStrokeColor(
+private fun calculateLetterButtonStrokeColor(
     isVowel: Boolean,
     selected: Boolean,
     solutionStatus: SolutionStatus

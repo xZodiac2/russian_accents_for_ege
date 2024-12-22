@@ -33,21 +33,21 @@ internal class TrainingViewModel @Inject constructor(
     )
     val solutionStatus = _solutionStatus.asStateFlow()
 
-    private var mistakesMode = false
+    private var isMistakesMode = false
 
     fun handleEvent(event: Event) {
         when (event) {
-            is Event.Start -> onStart(event.mistakesOnly)
+            is Event.Start -> onStart(event.isMistakesOnly)
             is Event.CheckPressed -> checkAccent(event.wordIndex, event.letterIndex)
             is Event.NextPressed -> onNextPressed(event.latestWordIndex)
             Event.LetterSelected -> clearSolution()
         }
     }
 
-    private fun onStart(mistakesOnly: Boolean) {
-        mistakesMode = mistakesOnly
+    private fun onStart(isMistakesOnly: Boolean) {
+        isMistakesMode = isMistakesOnly
         viewModelScope.launch(Dispatchers.IO) {
-            _wordsState.value = if (mistakesOnly) {
+            _wordsState.value = if (isMistakesOnly) {
                 val mistakes = mistakesRepository.getAllMistakes()
                 val words = mistakes.flatMap { mistake -> List(mistake.count) { mistake.atWord } }
                 WordList(words.shuffled())
@@ -61,7 +61,7 @@ internal class TrainingViewModel @Inject constructor(
     private fun onNextPressed(latestWordIndex: Int) {
         clearSolution()
 
-        if (mistakesMode) {
+        if (isMistakesMode) {
             viewModelScope.launch(Dispatchers.IO) {
                 val word = _wordsState.value.words[latestWordIndex]
                 mistakesRepository.getMistakeByWord(word)

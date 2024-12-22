@@ -16,7 +16,7 @@ internal class MistakesRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getMistakeByWord(word: String): Result<Mistake> {
-        val mistake = database.mistakesDao.getMistakeByWord(word)?.toMistake()
+        val mistake = withContext(Dispatchers.IO) { database.mistakesDao.getMistakeByWord(word)?.toMistake() }
         return mistake?.let { Result.success(it) } ?: Result.failure(RepositoryError.MistakeNotFound)
     }
 

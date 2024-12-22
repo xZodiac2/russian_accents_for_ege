@@ -20,17 +20,14 @@ import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.NonRestartableComposable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -51,18 +48,20 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
-    private val viewModel by viewModels<SplashScreenViewModel>()
+    private val splashScreenViewModel by viewModels<SplashScreenViewModel>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        installSplashScreen().apply { setKeepOnScreenCondition { viewModel.isLoading } }
+        installSplashScreen().apply { setKeepOnScreenCondition { splashScreenViewModel.showSplashScreen } }
         enableEdgeToEdge()
         setContent {
             val navController = rememberNavController()
-            var isBottomBarVisible by remember { mutableStateOf(true) }
+            val currentBackStackEntry = navController.currentBackStackEntryAsState()
+
             Scaffold(
                 containerColor = Color.White,
                 bottomBar = {
+                    val isBottomBarVisible = isBottomBarVisible(currentBackStackEntry.value)
                     if (isBottomBarVisible) {
                         BottomBar(navController)
                     }
@@ -70,20 +69,22 @@ class MainActivity : ComponentActivity() {
             ) { padding ->
                 Navigation(
                     padding = padding,
-                    navController = navController,
-                    hideBottomBar = { isBottomBarVisible = false },
-                    showBottomBar = { isBottomBarVisible = true }
+                    navController = navController
                 )
             }
         }
+    }
+
+    @NonRestartableComposable
+    @Composable
+    private fun isBottomBarVisible(backStackEntry: NavBackStackEntry?): Boolean {
+        return backStackEntry?.destination?.hasRoute(Screen.Training::class) == false
     }
 
     @Composable
     private fun Navigation(
         padding: PaddingValues,
         navController: NavHostController,
-        hideBottomBar: () -> Unit,
-        showBottomBar: () -> Unit
     ) {
         NavHost(
             modifier = Modifier.padding(padding),
@@ -95,7 +96,6 @@ class MainActivity : ComponentActivity() {
                 exitTransition = { fadeOut(tween(0)) }
             ) {
                 HomeScreen { navController.navigate(Screen.Training(false)) }
-                LaunchedEffect(Unit) { showBottomBar() }
             }
             composable<Screen.Training>(
                 enterTransition = { fadeIn(tween(0)) },
@@ -103,14 +103,12 @@ class MainActivity : ComponentActivity() {
             ) {
                 val route = it.toRoute<Screen.Training>()
                 TrainingScreen(route.mistakesOnly) { navController.popBackStack() }
-                LaunchedEffect(Unit) { hideBottomBar() }
             }
             composable<Screen.MistakeReview>(
                 enterTransition = { fadeIn(tween(0)) },
                 exitTransition = { fadeOut(tween(0)) }
             ) {
                 MistakesReviewScreen { navController.navigate(Screen.Training(true)) }
-                LaunchedEffect(Unit) { showBottomBar() }
             }
         }
     }
@@ -118,15 +116,13 @@ class MainActivity : ComponentActivity() {
     @Composable
     private fun BottomBar(navController: NavController) {
         val backStackEntry = navController.currentBackStackEntryAsState()
-        val curDestination = backStackEntry.value?.destination
+        val currentDestination = backStackEntry.value?.destination
         Column {
             HorizontalDivider()
-            NavigationBar(
-                containerColor = Color.White
-            ) {
+            NavigationBar(containerColor = Color.White) {
                 for (item in listOf(BottomBarItem.Home, BottomBarItem.MistakeReview)) {
                     NavigationBarItem(
-                        selected = curDestination?.hierarchy?.any { it.hasRoute(item.screen::class) } == true,
+                        selected = currentDestination?.hierarchy?.any { it.hasRoute(item.screen::class) } == true,
                         onClick = {
                             navController.navigate(item.screen) {
                                 popUpTo(navController.graph.findStartDestination().id) {
