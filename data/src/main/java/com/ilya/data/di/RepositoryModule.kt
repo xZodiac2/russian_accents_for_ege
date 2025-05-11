@@ -13,10 +13,10 @@ import dagger.hilt.android.components.ViewModelComponent
 @InstallIn(ViewModelComponent::class)
 internal interface RepositoryModule {
 
-    @Binds
-    fun bindMistakesRepository(impl: MistakesRepositoryImpl): MistakesRepository
+  @Binds
+  fun bindMistakesRepository(impl: MistakesRepositoryImpl): MistakesRepository
 
-    @Binds
-    fun bindWordRepository(impl: WordsRepositoryImpl): WordsRepository
+  @Binds
+  fun bindWordRepository(impl: WordsRepositoryImpl): WordsRepository
 
 }

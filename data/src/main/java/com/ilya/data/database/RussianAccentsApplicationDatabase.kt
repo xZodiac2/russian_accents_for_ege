@@ -7,5 +7,5 @@ import com.ilya.data.database.entity.MistakeEntity
 
 @Database(entities = [MistakeEntity::class], version = 1)
 internal abstract class RussianAccentsApplicationDatabase : RoomDatabase() {
-    abstract val mistakesDao: MistakesDao
+  abstract val mistakesDao: MistakesDao
 }

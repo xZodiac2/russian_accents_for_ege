@@ -7,14 +7,14 @@ import kotlinx.coroutines.launch
 
 class SplashScreenViewModel : ViewModel() {
 
-    var showSplashScreen = true
-        private set
+  var showSplashScreen = true
+    private set
 
-    init {
-        viewModelScope.launch {
-            delay(1000)
-            showSplashScreen = false
-        }
+  init {
+    viewModelScope.launch {
+      delay(1000)
+      showSplashScreen = false
     }
+  }
 
 }

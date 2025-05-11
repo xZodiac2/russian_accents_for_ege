@@ -6,14 +6,14 @@ import javax.inject.Inject
 
 internal class WordsRepositoryImpl @Inject constructor(private val assetManager: AssetManager) : WordsRepository {
 
-    override suspend fun getAll(): List<String> {
-        return assetManager.open(FILE_NAME).use { input ->
-            input.reader().use { it.readLines() }
-        }
+  override suspend fun getAll(): List<String> {
+    return assetManager.open(FILE_NAME).use { input ->
+      input.reader().use { it.readLines() }
     }
+  }
 
-    companion object {
-        private const val FILE_NAME = "words.txt"
-    }
+  companion object {
+    private const val FILE_NAME = "words.txt"
+  }
 
 }

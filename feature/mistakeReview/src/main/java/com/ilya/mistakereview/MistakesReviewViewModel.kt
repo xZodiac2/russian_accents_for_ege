@@ -13,23 +13,23 @@ import javax.inject.Inject
 
 @HiltViewModel
 internal class MistakesReviewViewModel @Inject constructor(
-    private val repository: MistakesRepository
+  private val repository: MistakesRepository
 ) : ViewModel() {
 
-    private val _screenState = MutableStateFlow<ScreenState>(ScreenState.Loading)
-    val screenState = _screenState.asStateFlow()
+  private val _screenState = MutableStateFlow<ScreenState>(ScreenState.Loading)
+  val screenState = _screenState.asStateFlow()
 
-    fun handleEvent(event: Event) {
-        when (event) {
-            Event.Start -> onStart()
-        }
+  fun handleEvent(event: Event) {
+    when (event) {
+      Event.Start -> onStart()
     }
+  }
 
-    private fun onStart() {
-        viewModelScope.launch {
-            val mistakes = repository.getAllMistakes()
-            _screenState.value = ScreenState.MistakesList(mistakes)
-        }
+  private fun onStart() {
+    viewModelScope.launch {
+      val mistakes = repository.getAllMistakes()
+      _screenState.value = ScreenState.MistakesList(mistakes)
     }
+  }
 
 }

@@ -61,162 +61,162 @@ import com.ilya.home.R
 
 @Composable
 fun HomeScreen(onTrainingClick: () -> Unit) {
-    val viewModel = hiltViewModel<HomeViewModel>()
+  val viewModel = hiltViewModel<HomeViewModel>()
 
-    val screenState = viewModel.screenState.collectAsState()
-    val lazyListState = rememberLazyListState()
+  val screenState = viewModel.screenState.collectAsState()
+  val lazyListState = rememberLazyListState()
 
-    Scaffold(
-        containerColor = Color.White,
-        topBar = { TopBar(lazyListState) { viewModel.handleEvent(Event.Search(it)) } },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { onTrainingClick() },
-                containerColor = Color(39, 139, 224, 255),
-                shape = CircleShape
-            ) {
-                Row(
-                    modifier = Modifier.padding(12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Text(
-                        text = "Практиковаться",
-                        color = Color.White
-                    )
-                    Icon(
-                        modifier = Modifier.size(30.dp),
-                        imageVector = ImageVector.vectorResource(R.drawable.dumbbell),
-                        contentDescription = "training",
-                        tint = Color.White
-                    )
-                }
-            }
-        },
-        contentWindowInsets = WindowInsets(bottom = 0)
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(it),
-            contentAlignment = Alignment.Center
+  Scaffold(
+    containerColor = Color.White,
+    topBar = { TopBar(lazyListState) { viewModel.handleEvent(Event.Search(it)) } },
+    floatingActionButton = {
+      FloatingActionButton(
+        onClick = { onTrainingClick() },
+        containerColor = Color(39, 139, 224, 255),
+        shape = CircleShape
+      ) {
+        Row(
+          modifier = Modifier.padding(12.dp),
+          verticalAlignment = Alignment.CenterVertically,
+          horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            if (screenState.value.words.isEmpty()) {
-                Text(text = "Нет результатов", fontSize = 32.sp)
-            }
-            WordList(lazyListState, screenState.value.words)
+          Text(
+            text = "Практиковаться",
+            color = Color.White
+          )
+          Icon(
+            modifier = Modifier.size(30.dp),
+            imageVector = ImageVector.vectorResource(R.drawable.dumbbell),
+            contentDescription = "training",
+            tint = Color.White
+          )
         }
+      }
+    },
+    contentWindowInsets = WindowInsets(bottom = 0)
+  ) {
+    Box(
+      modifier = Modifier
+        .fillMaxSize()
+        .padding(it),
+      contentAlignment = Alignment.Center
+    ) {
+      if (screenState.value.words.isEmpty()) {
+        Text(text = "Нет результатов", fontSize = 32.sp)
+      }
+      WordList(lazyListState, screenState.value.words)
     }
+  }
 
-    LaunchedEffect(Unit) {
-        viewModel.handleEvent(Event.Start)
-    }
+  LaunchedEffect(Unit) {
+    viewModel.handleEvent(Event.Start)
+  }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TopBar(lazyListState: LazyListState, onSearch: (String) -> Unit) {
-    val contentScrolled by remember {
-        derivedStateOf { lazyListState.firstVisibleItemIndex > 0 || lazyListState.firstVisibleItemScrollOffset > 50 }
-    }
-    val dividerColor = animateColorAsState(
-        targetValue = if (contentScrolled) Color.Gray else Color(0, 0, 0, 0),
-        label = "topBarDividerColorAnimation"
+  val contentScrolled by remember {
+    derivedStateOf { lazyListState.firstVisibleItemIndex > 0 || lazyListState.firstVisibleItemScrollOffset > 50 }
+  }
+  val dividerColor = animateColorAsState(
+    targetValue = if (contentScrolled) Color.Gray else Color(0, 0, 0, 0),
+    label = "topBarDividerColorAnimation"
+  )
+  Column {
+    TopAppBar(
+      title = { Text("Все слова для ЕГЭ") },
+      colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White),
+      windowInsets = WindowInsets(0, 0)
     )
-    Column {
-        TopAppBar(
-            title = { Text("Все слова для ЕГЭ") },
-            colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White),
-            windowInsets = WindowInsets(0, 0)
-        )
-        SearchBar(
-            modifier = Modifier.padding(horizontal = 16.dp),
-            onSearch = onSearch
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        HorizontalDivider(color = dividerColor.value)
-    }
+    SearchBar(
+      modifier = Modifier.padding(horizontal = 16.dp),
+      onSearch = onSearch
+    )
+    Spacer(modifier = Modifier.height(16.dp))
+    HorizontalDivider(color = dividerColor.value)
+  }
 }
 
 @Composable
 private fun WordList(lazyListState: LazyListState, words: List<List<String>>) {
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        state = lazyListState,
-        contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        items(words, key = { it.first() }) { row ->
-            Card(
-                colors = CardDefaults.cardColors(containerColor = Color.White),
-                elevation = CardDefaults.cardElevation(16.dp)
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        text = row[0][0].uppercase(),
-                        fontSize = 34.sp
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-                    HorizontalDivider(color = Color.LightGray, thickness = 2.dp)
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Column {
-                        for (word in row) {
-                            Text(
-                                text = "• $word",
-                                fontSize = 22.sp
-                            )
-                        }
-                    }
-                }
+  LazyColumn(
+    modifier = Modifier.fillMaxSize(),
+    state = lazyListState,
+    contentPadding = PaddingValues(16.dp),
+    verticalArrangement = Arrangement.spacedBy(16.dp)
+  ) {
+    items(words, key = { it.first() }) { row ->
+      Card(
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(16.dp)
+      ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+          Text(
+            text = row[0][0].uppercase(),
+            fontSize = 34.sp
+          )
+          Spacer(modifier = Modifier.height(12.dp))
+          HorizontalDivider(color = Color.LightGray, thickness = 2.dp)
+          Spacer(modifier = Modifier.height(12.dp))
+          Column {
+            for (word in row) {
+              Text(
+                text = "• $word",
+                fontSize = 22.sp
+              )
             }
+          }
         }
+      }
     }
+  }
 }
 
 @Composable
 private fun SearchBar(modifier: Modifier = Modifier, onSearch: (String) -> Unit) {
-    var value by remember { mutableStateOf("") }
-    val focusManager = LocalFocusManager.current
-    OutlinedTextField(
-        modifier = modifier.fillMaxWidth(),
-        value = value,
-        onValueChange = { value = it },
-        placeholder = {
-            Text(
-                text = "Поиск слов",
-                fontSize = 20.sp
-            )
-        },
-        textStyle = TextStyle(fontSize = 20.sp),
-        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-        trailingIcon = {
-            if (value.isNotEmpty()) {
-                IconButton(
-                    onClick = {
-                        value = ""
-                        onSearch(value)
-                        focusManager.clearFocus()
-                    }
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Clear,
-                        contentDescription = "clearSearchBar"
-                    )
-                }
-            }
-        },
-        keyboardActions = KeyboardActions(
-            onSearch = {
-                onSearch(value)
-                focusManager.clearFocus()
-            }
-        ),
-        shape = RoundedCornerShape(12.dp),
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = Color.Black,
-            cursorColor = Color.Black,
-            focusedTextColor = Color.Black,
-            unfocusedTextColor = Color.Black
-        )
+  var value by remember { mutableStateOf("") }
+  val focusManager = LocalFocusManager.current
+  OutlinedTextField(
+    modifier = modifier.fillMaxWidth(),
+    value = value,
+    onValueChange = { value = it },
+    placeholder = {
+      Text(
+        text = "Поиск слов",
+        fontSize = 20.sp
+      )
+    },
+    textStyle = TextStyle(fontSize = 20.sp),
+    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+    trailingIcon = {
+      if (value.isNotEmpty()) {
+        IconButton(
+          onClick = {
+            value = ""
+            onSearch(value)
+            focusManager.clearFocus()
+          }
+        ) {
+          Icon(
+            imageVector = Icons.Default.Clear,
+            contentDescription = "clearSearchBar"
+          )
+        }
+      }
+    },
+    keyboardActions = KeyboardActions(
+      onSearch = {
+        onSearch(value)
+        focusManager.clearFocus()
+      }
+    ),
+    shape = RoundedCornerShape(12.dp),
+    colors = OutlinedTextFieldDefaults.colors(
+      focusedBorderColor = Color.Black,
+      cursorColor = Color.Black,
+      focusedTextColor = Color.Black,
+      unfocusedTextColor = Color.Black
     )
+  )
 }

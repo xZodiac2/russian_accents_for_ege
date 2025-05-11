@@ -12,9 +12,9 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 internal object AssetManagerModule {
-    @Singleton
-    @Provides
-    fun provideAssetManager(@ApplicationContext context: Context): AssetManager {
-        return context.assets
-    }
+  @Singleton
+  @Provides
+  fun provideAssetManager(@ApplicationContext context: Context): AssetManager {
+    return context.assets
+  }
 }

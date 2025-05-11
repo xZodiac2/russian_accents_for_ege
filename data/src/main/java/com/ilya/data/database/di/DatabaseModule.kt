@@ -14,14 +14,14 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 internal object DatabaseModule {
 
-    @Provides
-    @Singleton
-    fun provideDatabase(@ApplicationContext context: Context): RussianAccentsApplicationDatabase {
-        return Room.databaseBuilder(
-            context = context,
-            klass = RussianAccentsApplicationDatabase::class.java,
-            name = "russianAccentsApplicaiton.db"
-        ).build()
-    }
+  @Provides
+  @Singleton
+  fun provideDatabase(@ApplicationContext context: Context): RussianAccentsApplicationDatabase {
+    return Room.databaseBuilder(
+      context = context,
+      klass = RussianAccentsApplicationDatabase::class.java,
+      name = "russianAccentsApplicaiton.db"
+    ).build()
+  }
 
 }
